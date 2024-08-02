@@ -6,5 +6,6 @@ Also theese are the requirements:
 "keyboard",
 "time",
 "threading",
-"colorama"
+"colorama",
+"ctypes"
 } - with much love by winter :3
