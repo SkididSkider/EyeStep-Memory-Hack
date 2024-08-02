@@ -5,6 +5,8 @@ import keyboard
 from colorama import init, Fore
 import threading
 import time
+import platform
+import ctypes
 
 # Initialize colorama for colored console output
 init(autoreset=True)
@@ -47,14 +49,29 @@ frame.grid(row=0, column=0, padx=8, pady=8, sticky="nsew")
 # Initialize process memory object
 pm = None
 
+# Function to check if a process is 32-bit or 64-bit
+def is_process_64bit(pid):
+    process_handle = ctypes.windll.kernel32.OpenProcess(0x1000, False, pid)
+    if process_handle == 0:
+        return False
+    is64bit = ctypes.c_int()
+    ctypes.windll.kernel32.IsWow64Process(process_handle, ctypes.byref(is64bit))
+    ctypes.windll.kernel32.CloseHandle(process_handle)
+    return is64bit.value == 0
+
 # Function to inject into the specified process
 def inject_function():
     global pm
     try:
         stat.configure(text="Injecting...", text_color="yellow")
         pm = pymem.Pymem(process_name)  # Use user-provided process name
+        process_64bit = is_process_64bit(pm.process_id)
         app.after(400, lambda: stat.configure(text="Injected", text_color="green"))
         print(console_color + "Injected successfully")
+        if process_64bit:
+            print(console_color + "Target process is 64-bit.")
+        else:
+            print(console_color + "Target process is 32-bit.")
     except pymem.exception.PymemError as e:
         stat.configure(text=f"Process not found: {e}", text_color="red")
         print(Fore.RED + f"Error: {e}")
@@ -76,7 +93,7 @@ def check_switch():
             except Exception as e:
                 stat.configure(text=f"Error: {str(e)}", text_color="red")
                 print(Fore.RED + f"Error: {str(e)}")
-        time.sleep(0)  # Sleep to prevent busy-waiting
+        time.sleep(0.5)  # Sleep to prevent busy-waiting
 
 # Function to write to memory when the hotkey is pressed
 def hotkey_action():
