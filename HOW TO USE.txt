@@ -7,5 +7,6 @@ Also theese are the requirements:
 "time",
 "threading",
 "colorama",
-"ctypes"
+"ctypes",
+"hwid"
 } - with much love by winter :3
